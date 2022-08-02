@@ -60,7 +60,7 @@ char* read_seq(char *fname) {
 mtype ** allocateMatrix(int sizeA, int sizeB) {
 	int i;
 	//Allocate memory for LCS score matrix
-	mtype ** scoreMatrix = (mtype **) calloc((sizeB + 1), sizeof(mtype *));
+	mtype ** scoreMatrix = (mtype **) malloc((sizeB + 1) * sizeof(mtype *));
 	for (i = 0; i < (sizeB + 1); i++)
 		scoreMatrix[i] = (mtype *) calloc((sizeA + 1), sizeof(mtype));
 	return scoreMatrix;
@@ -76,6 +76,23 @@ void initScoreMatrix(mtype ** scoreMatrix, int sizeA, int sizeB) {
 	for (i = 1; i < (sizeB + 1); i++)
 		scoreMatrix[i][0] = 0;
 }
+
+// mtype ** allocatePMatrix(int alphabetSize, int seqSize) {
+	
+// 	mtype ** P
+	
+// 	for (int i = 0; i < alphabetSize; i++)
+// 	{
+// 		for (int j = 0; )
+// 	}
+	
+	
+// 	(short **)malloc(alphabetSize * sizeof(short *));
+//     for(int k = 0; k < seqSize; k++)
+//     {
+//         P[k] = (short *)calloc((len_b+1), sizeof(short));
+//     }
+// }
 
 char* findUniqueChars(int sizeA, int sizeB, int *sizeUnique, char *seqA, char *seqB) {
 	// this function allocates and returns an array of unique chars
@@ -117,41 +134,17 @@ char* findUniqueChars(int sizeA, int sizeB, int *sizeUnique, char *seqA, char *s
 }
 
 //old
-// void fillPMatrix(mtype **P, char *c, int len_c, char *b, int len_b)
-// {
-//     //#pragma omp parallel for
-//     for(int i = 0; i < len_c; i++)
-//     {
-//         for(int j = 2; j < len_b+1; j++)
-//         {
-//             if(b[j-2]==c[i]) //j-2 as b we assume here that b has a empty character in the beginning
-//             {
-//                 P[i][j] = j-1;
-//             }
-//             else
-//             {
-//                 P[i][j] = P[i][j-1];
-//             }
-//         }
-//     }
-// }
-
 void fillPMatrix(mtype **P, char *c, int len_c, char *b, int len_b)
 {
-	printf("\nFIL ");
     //#pragma omp parallel for
     for(int i = 0; i < len_c; i++)
     {
-		printf("\ni na fill: %d \n", i);
-        for(int j = 1; j < len_b+1; j++)
+        for(int j = 2; j < len_b+1; j++)
         {
-			printf("j na fill: %d \n", j);
-			printf("b[j-1]: %c  c[i] %c \n", b[j-1], c[i]);
-			if(b[j-1] == c[i])
+            if(b[j-2]==c[i]) //j-2 as b we assume here that b has a empty character in the beginning
             {
-                P[i][j] = j - 1;
+                P[i][j] = j-1;
             }
-
             else
             {
                 P[i][j] = P[i][j-1];
@@ -159,6 +152,30 @@ void fillPMatrix(mtype **P, char *c, int len_c, char *b, int len_b)
         }
     }
 }
+
+// void fillPMatrix(mtype **P, char *c, int len_c, char *b, int len_b)
+// {
+// 	// printf("\nFIL ");
+//     //#pragma omp parallel for
+//     for(int i = 0; i < len_c; i++)
+//     {
+// 		// printf("\ni na fill: %d \n", i);
+//         for(int j = 1; j < len_b + 1; j++)
+//         {
+// 			// printf("j na fill: %d \n", j);
+// 			// printf("b[j-1]: %c  c[i] %c \n", b[j-1], c[i]);
+// 			if(b[j-1] == c[i])
+//             {
+//                 P[i][j] = j - 1;
+//             }
+
+//             else
+//             {
+//                 P[i][j] = P[i][j-1];
+//             }
+//         }
+//     }
+// }
 
 int LCS(mtype ** scoreMatrix, int sizeA, int sizeB, char * seqA, char *seqB) {
 	int i, j;
@@ -195,8 +212,10 @@ int LcsParallel(mtype ** scoreMatrix, int sizeA, int sizeB, char * seqA, char *s
 	
 	int i, j;
 	for (i = 1; i < sizeB + 1; i++) {
-		int c_i = getCharIndex(seqUniqueChars, sizeUniqueChars, seqA[i-1]); // the characther index in P Matrix
+
+		int c_i = getCharIndex(seqUniqueChars, sizeUniqueChars, seqB[i-1]); // the characther index in P Matrix
 		printf("i: %d  CI: %d ", i, c_i);
+
 		for (j = 1; j < sizeA + 1; j++) {
 			if (seqA[j - 1] == seqB[i - 1])
 			{
@@ -263,7 +282,7 @@ void printMatrix(char * seqA, char * seqB, mtype ** scoreMatrix, int sizeA,
 		else
 			printf("%c   ", seqB[i - 1]);
 		for (j = 0; j < sizeA + 1; j++) {
-			printf("%5d(%d,%d)   ", scoreMatrix[i][j], i,j);
+			printf("%5d   ", scoreMatrix[i][j], i,j);
 		}
 		printf("\n");
 	}
@@ -311,13 +330,14 @@ int main(int argc, char ** argv) {
 	printf("\n");
 	
 	// allocate P matrix
-	mtype ** pMatrix = allocateMatrix(sizeB-1, sizeUniqChars-1);
+	mtype ** pMatrix = allocateMatrix(sizeA, sizeUniqChars-1);
 
 	// fill P matrix
-	fillPMatrix(pMatrix, uniqueChars, sizeUniqChars, seqB, sizeB);
+	fillPMatrix(pMatrix, uniqueChars, sizeUniqChars, seqA, sizeA);
 
+	printf("MATRIZ P\n");
 	for (int i = 0; i < sizeUniqChars; i++) {
-		for (int j = 0; j < sizeB; j++) {
+		for (int j = 0; j < sizeA+1; j++) {
 			printf("%d(%d,%d)   ", pMatrix[i][j],i,j);
 		}
 		printf("\n");
