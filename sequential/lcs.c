@@ -161,7 +161,7 @@ int main(int argc, char ** argv) {
 #endif
 
 	//print score
-	printf("\nScore: %d\n", score);
+	printf("Score: %d\n", score);
 
 	//free score matrix
 	freeScoreMatrix(scoreMatrix, sizeB);
